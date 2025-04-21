@@ -1,0 +1,784 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Medical System API",
+    "version": "1.0.0",
+    "description": "API для управління лікарями та записами на прийом у медичній системі."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080/api/v1",
+      "description": "Локальний сервер розробки"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Doctor": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Унікальний ідентифікатор лікаря",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Ім'я та прізвище лікаря"
+          },
+          "speciality": {
+            "type": "string",
+            "description": "Медична спеціальність лікаря"
+          },
+          "contact_info": {
+            "type": "object",
+            "properties": {
+              "phone": {
+                "type": "string",
+                "description": "Номер телефону лікаря"
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "description": "Електронна адреса лікаря"
+              }
+            },
+            "description": "Контактна інформація лікаря"
+            },
+            "availability": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                    "day": {
+                        "type": "string",
+                        "description": "День тижня"
+                    },
+                    "start_time": {
+                        "type": "string",
+                        "format": "HH:mm",
+                        "description": "Час початку прийому"
+                    },
+                    "end_time": {
+                        "type": "string",
+                        "format": "HH:mm",
+                        "description": "Час закінчення прийому"
+                    }
+                    },
+                    "description": "Графік роботи лікаря"
+                },
+                "description": "Графік роботи лікаря"
+            },
+          "education": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Перелік навчальних закладів та отриманих ступенів"
+          },
+          "certificates": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Перелік отриманих сертифікатів та ліцензій"
+          }
+        },
+        "required": [
+          "name",
+          "speciality",
+          "contact_info"
+        ]
+      },
+      "Appointment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Унікальний ідентифікатор запису",
+            "readOnly": true
+          },
+          "doctor_id": {
+            "type": "integer",
+            "description": "Ідентифікатор лікаря"
+          },
+          "patient_id": {
+            "type": "integer",
+            "description": "Ідентифікатор пацієнта"
+          },
+          "appointment_datetime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Дата та час прийому (YYYY-MM-DDTHH:mm:ssZ)"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "scheduled",
+              "completed",
+              "cancelled"
+            ],
+            "default": "scheduled",
+            "description": "Статус запису"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Причина звернення",
+            "nullable": true
+          },
+          "diagnosis": {
+            "type": "string",
+            "description": "Попередній або остаточний діагноз",
+            "nullable": true
+          }
+        },
+        "required": [
+          "doctor_id",
+          "patient_id",
+          "appointment_datetime"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/doctors": {
+      "get": {
+        "summary": "Отримати список усіх лікарів",
+        "description": "Повертає список усіх лікарів у системі.",
+        "parameters": [
+          {
+            "name": "speciality",
+            "in": "query",
+            "description": "Фільтрувати за спеціальністю лікаря",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Пошук за іменем або спеціальністю лікаря",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успішний запит. Повертає масив лікарів.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Doctor"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутрішня помилка сервера.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Додати нового лікаря",
+        "description": "Додає нового лікаря до системи.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Doctor"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Успішно створено. Повертає інформацію про нового лікаря.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Doctor"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Невалідний запит.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутрішня помилка сервера.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doctors/{id}": {
+      "get": {
+        "summary": "Отримати інформацію про лікаря за ID",
+        "description": "Повертає інформацію про лікаря за вказаним ідентифікатором.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Ідентифікатор лікаря",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успішний запит. Повертає інформацію про лікаря.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Doctor"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Лікаря не знайдено.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутрішня помилка сервера.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Оновити інформацію про лікаря",
+        "description": "Оновлює інформацію про лікаря за вказаним ідентифікатором.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Ідентифікатор лікаря",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Doctor"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Успішно оновлено. Повертає оновлену інформацію про лікаря.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Doctor"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Невалідний запит.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Лікаря не знайдено.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутрішня помилка сервера.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Видалити лікаря",
+        "description": "Видаляє лікаря за вказаним ідентифікатором.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Ідентифікатор лікаря",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Успішно видалено."
+          },
+          "404": {
+            "description": "Лікаря не знайдено.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутрішня помилка сервера.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doctors/{id}/schedule": {
+      "get": {
+        "summary": "Отримати розклад лікаря за період",
+        "description": "Повертає розклад прийому лікаря за вказаний період.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Ідентифікатор лікаря",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "description": "Початкова дата періоду (YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "description": "Кінцева дата періоду (YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успішний запит. Повертає розклад лікаря.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "date": {
+                        "type": "string",
+                        "format": "date"
+                      },
+                      "start_time": {
+                        "type": "string",
+                        "format": "HH:mm"
+                      },
+                      "end_time": {
+                        "type": "string",
+                        "format": "HH:mm"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Невалідні параметри запиту.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Лікаря не знайдено.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутрішня помилка сервера.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/appointments": {
+      "get": {
+        "summary": "Отримати список усіх записів на прийом",
+        "description": "Повертає список усіх записів на прийом у системі з можливістю фільтрації.",
+        "parameters": [
+          {
+            "name": "doctor_id",
+            "in": "query",
+            "description": "Фільтрувати за ідентифікатором лікаря",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "patient_id",
+            "in": "query",
+            "description": "Фільтрувати за ідентифікатором пацієнта",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "Фільтрувати за початковою датою (YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Фільтрувати за кінцевою датою (YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Фільтрувати за статусом запису (scheduled, completed, cancelled)",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "scheduled",
+                "completed",
+                "cancelled"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успішний запит. Повертає масив записів на прийом.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Appointment"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутрішня помилка сервера.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Створити новий запис на прийом",
+        "description": "Створює новий запис на прийом.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Appointment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Успішно створено. Повертає інформацію про новий запис.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Appointment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Невалідний запит.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутрішня помилка сервера.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/appointments/{id}": {
+      "get": {
+        "summary": "Отримати інформацію про запис за ID",
+        "description": "Повертає інформацію про запис на прийом за вказаним ідентифікатором.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Ідентифікатор запису",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успішний запит. Повертає інформацію про запис.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Appointment"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Запис не знайдено.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутрішня помилка сервера.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Оновити інформацію про запис",
+        "description": "Оновлює інформацію про запис на прийом за вказаним ідентифікатором.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Ідентифікатор запису",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Appointment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Успішно оновлено. Повертає оновлену інформацію про запис.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Appointment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Невалідний запит.",
+            "content": {
+                "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Запис не знайдено.",
+            "content": {
+                "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутрішня помилка сервера.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Видалити запис",
+        "description": "Видаляє запис на прийом за вказаним ідентифікатором.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Ідентифікатор запису",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Успішно видалено."
+          },
+          "404": {
+            "description": "Запис не знайдено.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутрішня помилка сервера.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
