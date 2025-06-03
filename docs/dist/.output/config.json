@@ -1,0 +1,32 @@
+{
+  "version": 3,
+  "framework": {
+    "version": "0.46.1"
+  },
+  "routes": [
+    {
+      "src": "/api",
+      "dest": "/api/~endpoints",
+      "status": 301,
+      "headers": {
+        "Location": "/api/~endpoints"
+      }
+    },
+    {
+      "src": "/api",
+      "dest": "/api/~endpoints",
+      "status": 301,
+      "headers": {
+        "Location": "/api/~endpoints"
+      }
+    },
+    {
+      "src": "/",
+      "dest": "/docs/introduction",
+      "status": 301,
+      "headers": {
+        "Location": "/docs/introduction"
+      }
+    }
+  ]
+}
