@@ -5,27 +5,27 @@
   },
   "routes": [
     {
-      "src": "/api",
-      "dest": "/api/~endpoints",
+      "src": "/MedicalSystemAPI/docs/api",
+      "dest": "/MedicalSystemAPI/docs/api/~endpoints",
       "status": 301,
       "headers": {
-        "Location": "/api/~endpoints"
+        "Location": "/MedicalSystemAPI/docs/api/~endpoints"
       }
     },
     {
-      "src": "/api",
-      "dest": "/api/~endpoints",
+      "src": "/MedicalSystemAPI/docs/api",
+      "dest": "/MedicalSystemAPI/docs/api/~endpoints",
       "status": 301,
       "headers": {
-        "Location": "/api/~endpoints"
+        "Location": "/MedicalSystemAPI/docs/api/~endpoints"
       }
     },
     {
-      "src": "/",
-      "dest": "/docs/introduction",
+      "src": "/MedicalSystemAPI/docs",
+      "dest": "/MedicalSystemAPI/docs/docs/introduction",
       "status": 301,
       "headers": {
-        "Location": "/docs/introduction"
+        "Location": "/MedicalSystemAPI/docs/docs/introduction"
       }
     }
   ]
